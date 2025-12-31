@@ -32,8 +32,6 @@
             --font-xl: 1.25rem;
             --font-2xl: 1.5rem;
             --safaricom-color: #00A859;
-            --airtel-color: #EF4123;
-            --telkom-color: #00ABE2;
         }
 
         * {
@@ -155,7 +153,7 @@
             border-color: var(--primary);
         }
 
-        /* Bundle Grid - Updated with category spacing */
+        /* Bundle Grid */
         .bundles-grid {
             display: flex;
             flex-direction: column;
@@ -374,7 +372,7 @@
             margin-bottom: 0.5rem;
         }
 
-        /* Network and Phone Input Styles */
+        /* Phone Input Styles */
         .input-wrapper {
             margin-bottom: 1rem;
         }
@@ -388,97 +386,6 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-        }
-
-        /* Network Selector Styles */
-        .network-selector {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .network-option {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-            background-color: white;
-        }
-
-        .network-option:hover {
-            border-color: var(--primary-light);
-            transform: translateY(-2px);
-        }
-
-        .network-option.selected {
-            background-color: rgba(39, 174, 96, 0.1);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Network-specific selected styles - FIXED */
-        .network-option[data-network="safaricom"].selected {
-            border-color: var(--safaricom-color) !important;
-            background-color: rgba(0, 168, 89, 0.1);
-        }
-
-        .network-option[data-network="airtel"].selected {
-            border-color: var(--airtel-color) !important;
-            background-color: rgba(239, 65, 35, 0.1);
-        }
-
-        .network-option[data-network="telkom"].selected {
-            border-color: var(--telkom-color) !important;
-            background-color: rgba(0, 171, 226, 0.1);
-        }
-
-        .network-icon {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-light);
-            transition: color 0.2s ease;
-        }
-
-        /* Network-specific icon colors when selected - FIXED */
-        .network-option[data-network="safaricom"].selected .network-icon {
-            color: var(--safaricom-color) !important;
-        }
-
-        .network-option[data-network="airtel"].selected .network-icon {
-            color: var(--airtel-color) !important;
-        }
-
-        .network-option[data-network="telkom"].selected .network-icon {
-            color: var(--telkom-color) !important;
-        }
-
-        .network-name {
-            font-size: var(--font-xs);
-            font-weight: 600;
-            color: var(--text);
-            transition: color 0.2s ease;
-        }
-
-        /* Network-specific name colors when selected */
-        .network-option[data-network="safaricom"].selected .network-name {
-            color: var(--safaricom-color);
-            font-weight: 700;
-        }
-
-        .network-option[data-network="airtel"].selected .network-name {
-            color: var(--airtel-color);
-            font-weight: 700;
-        }
-
-        .network-option[data-network="telkom"].selected .network-name {
-            color: var(--telkom-color);
-            font-weight: 700;
         }
 
         /* Phone Input Styles */
@@ -525,14 +432,6 @@
             color: var(--text-light);
             margin-top: 0.5rem;
             line-height: 1.4;
-            display: flex;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
-
-        .input-note i {
-            color: var(--primary);
-            margin-top: 0.125rem;
         }
 
         /* Summary Box */
@@ -541,6 +440,7 @@
             padding: 1rem;
             border-radius: var(--radius-md);
             margin: 1.5rem 0;
+            border: 1px solid var(--border);
         }
 
         .summary-row {
@@ -609,15 +509,6 @@
             .hero h2 {
                 font-size: var(--font-md);
             }
-            
-            .network-selector {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 0.375rem;
-            }
-            
-            .network-option {
-                padding: 0.5rem;
-            }
         }
 
         @media (min-width: 768px) {
@@ -641,20 +532,20 @@
     <!-- Header -->
     <header class="header">
         <h1>Starlink Data Bundles</h1>
-        <div class="header-subtitle">High-speed internet for all networks in Kenya</div>
+        <div class="header-subtitle">High-speed internet for Kenya</div>
     </header>
 
     <!-- Main Content -->
     <main class="container">
         <!-- Hero Section -->
         <section class="hero">
-            <h2>Affordable Data Bundles for Everyone</h2>
-            <p>Select from our wide range of data plans for Safaricom, Airtel, and Telkom networks</p>
+            <h2>Affordable Data Bundles</h2>
+            <p>Select from our wide range of data plans</p>
             <div class="network-tags">
-                <span class="tag">Safaricom</span>
-                <span class="tag">Airtel</span>
-                <span class="tag">Telkom</span>
-                <span class="tag">All Networks</span>
+                <span class="tag">Daily</span>
+                <span class="tag">Weekly</span>
+                <span class="tag">Monthly</span>
+                <span class="tag">Unlimited</span>
             </div>
         </section>
 
@@ -723,28 +614,6 @@
             normalizePhone: '/api/normalize-phone'
         };
 
-        // Network provider mapping
-        const NETWORK_PROVIDERS = {
-            'safaricom': {
-                name: 'Safaricom',
-                icon: 'fas fa-signal',
-                provider: 'm-pesa',
-                color: '#00A859'
-            },
-            'airtel': {
-                name: 'Airtel',
-                icon: 'fas fa-broadcast-tower',
-                provider: 'airtel-money',
-                color: '#EF4123'
-            },
-            'telkom': {
-                name: 'Telkom',
-                icon: 'fas fa-wifi',
-                provider: 'telkom-mobile-money',
-                color: '#00ABE2'
-            }
-        };
-
         // Bundle data organized by categories
         const bundleData = {
             daily: {
@@ -792,7 +661,6 @@
 
         // State management
         let selectedBundle = null;
-        let selectedNetwork = 'safaricom'; // Default to Safaricom
         let isProcessing = false;
 
         // DOM Elements
@@ -908,8 +776,8 @@
             }
         }
 
-        // Phone number normalization
-        function normalizePhoneInput(phone) {
+        // Phone number validation
+        function validatePhoneNumber(phone) {
             // Remove all non-digits
             let cleanPhone = phone.replace(/\D/g, '');
             
@@ -925,12 +793,12 @@
             
             // Should be exactly 9 digits now
             if (cleanPhone.length !== 9) {
-                throw new Error('Invalid phone number length');
+                throw new Error('Phone number must be 9 digits (e.g., 712345678)');
             }
             
-            // Should start with 7 or 1
-            if (!/^[17]/.test(cleanPhone)) {
-                throw new Error('Phone must start with 7 or 1');
+            // Phone numbers must start with 7 or 1
+            if (!cleanPhone.startsWith('7') && !cleanPhone.startsWith('1')) {
+                throw new Error('Phone number must start with 7 or 1');
             }
             
             return cleanPhone;
@@ -947,7 +815,7 @@
             return '+254' + phone;
         }
 
-        // Show network and phone input modal
+        // Show phone input modal
         function showInputModal(bundle) {
             Swal.fire({
                 title: 'Send Data Bundle',
@@ -957,34 +825,11 @@
                             You selected: <strong>${bundle.title}</strong>
                         </p>
                         
-                        <!-- Network Selector -->
-                        <div class="input-wrapper">
-                            <label class="input-label">
-                                <i class="fas fa-network-wired"></i>
-                                Select Network Provider
-                            </label>
-                            <div class="network-selector" id="network-selector">
-                                ${Object.entries(NETWORK_PROVIDERS).map(([key, network], index) => `
-                                    <div class="network-option ${key === 'safaricom' ? 'selected' : ''}" 
-                                         data-network="${key}">
-                                        <div class="network-icon">
-                                            <i class="${network.icon}"></i>
-                                        </div>
-                                        <div class="network-name">${network.name}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            <p class="input-note">
-                                <i class="fas fa-info-circle"></i>
-                                Select the network for the recipient phone number
-                            </p>
-                        </div>
-                        
                         <!-- Phone Input -->
                         <div class="input-wrapper">
                             <label class="input-label">
                                 <i class="fas fa-mobile-alt"></i>
-                                Recipient Phone Number
+                                Phone Number
                             </label>
                             <div class="phone-input-group">
                                 <div class="phone-prefix">+254</div>
@@ -999,7 +844,6 @@
                                 >
                             </div>
                             <p class="input-note">
-                                <i class="fas fa-info-circle"></i>
                                 Enter the phone number where the data bundle should be sent
                             </p>
                         </div>
@@ -1010,22 +854,17 @@
                                 <span>Bundle:</span>
                                 <span><strong>${bundle.title}</strong></span>
                             </div>
-                            <div class="summary-row">
-                                <span>Network:</span>
-                                <span id="selected-network-display"><strong>Safaricom</strong></span>
-                            </div>
                             <div class="summary-row total">
                                 <span>Total Amount:</span>
                                 <span>Ksh ${bundle.price}</span>
                             </div>
                         </div>
                         
-                        <p style="color: var(--text-light); font-size: 0.8rem; margin-top: 1rem;">
+                        <p style="color: var(--text-light); font-size: 0.8rem; margin-top: 1rem; text-align: center;">
                             <i class="fas fa-lock"></i> Your payment is secure and encrypted
                         </p>
                     </div>
                 `,
-                icon: 'info',
                 showCancelButton: true,
                 confirmButtonText: 'Continue to Payment',
                 cancelButtonText: 'Cancel',
@@ -1036,11 +875,8 @@
                     let phoneValue = phoneInput.value;
                     
                     try {
-                        phoneValue = normalizePhoneInput(phoneValue);
-                        return { 
-                            phone: phoneValue,
-                            network: selectedNetwork
-                        };
+                        phoneValue = validatePhoneNumber(phoneValue);
+                        return { phone: phoneValue };
                     } catch (error) {
                         Swal.showValidationMessage(error.message || 'Invalid phone number format');
                         return false;
@@ -1049,40 +885,13 @@
             }).then(async (result) => {
                 if (result.isConfirmed && result.value) {
                     const recipientPhone = result.value.phone;
-                    selectedNetwork = result.value.network;
                     await initiatePayment(bundle, recipientPhone);
                 }
             });
 
-            // Add event listeners for network selection
+            // Add event listener for phone formatting
             setTimeout(() => {
                 const phoneInput = document.getElementById('swal-phone');
-                const networkOptions = document.querySelectorAll('.network-option');
-                const networkDisplay = document.getElementById('selected-network-display');
-                
-                // Network selection - FIXED VERSION
-                networkOptions.forEach(option => {
-                    option.addEventListener('click', function() {
-                        const network = this.dataset.network;
-                        const networkConfig = NETWORK_PROVIDERS[network];
-                        
-                        // Remove selected class from all options
-                        networkOptions.forEach(opt => {
-                            opt.classList.remove('selected');
-                        });
-                        
-                        // Add selected class to clicked option
-                        this.classList.add('selected');
-                        
-                        // Update summary display
-                        if (networkDisplay) {
-                            networkDisplay.innerHTML = `<strong>${networkConfig.name}</strong>`;
-                        }
-                        
-                        // Update selected network
-                        selectedNetwork = network;
-                    });
-                });
                 
                 // Phone formatting
                 if (phoneInput) {
@@ -1108,8 +917,8 @@
             showInputModal(bundle);
         }
 
-        // Send PayHero STK push with network provider
-        async function sendPayHeroSTK(phoneNumber, amount, bundleTitle, provider) {
+        // Send PayHero STK push
+        async function sendPayHeroSTK(phoneNumber, amount, bundleTitle) {
             try {
                 const response = await fetch(API_ENDPOINTS.initiatePayment, {
                     method: 'POST',
@@ -1117,8 +926,7 @@
                     body: JSON.stringify({
                         phone_number: phoneNumber,
                         amount: amount,
-                        description: `Starlink Data Bundle: ${bundleTitle}`,
-                        provider: provider // Pass the selected provider
+                        description: `Starlink Data Bundle: ${bundleTitle}`
                     })
                 });
                 
@@ -1172,22 +980,16 @@
                 // Normalize phone for STK
                 const normalizedPhone = await normalizePhoneNumber(recipientPhone);
                 
-                // Get provider for selected network
-                const provider = NETWORK_PROVIDERS[selectedNetwork].provider;
-                const networkName = NETWORK_PROVIDERS[selectedNetwork].name;
-                const networkColor = NETWORK_PROVIDERS[selectedNetwork].color;
-                
                 // Send STK push to user's phone
                 Swal.update({
-                    title: `Sending ${networkName} Payment Request`,
-                    html: `Initiating payment to your ${networkName} phone...`
+                    title: 'Sending Payment Request',
+                    html: 'Initiating payment to your phone...'
                 });
                 
                 const paymentResponse = await sendPayHeroSTK(
                     normalizedPhone,
                     parseInt(bundle.price),
-                    bundle.title,
-                    provider
+                    bundle.title
                 );
                 
                 if (!paymentResponse || !paymentResponse.reference) {
@@ -1196,28 +998,27 @@
                 
                 // Show success message with payment request sent
                 await Swal.fire({
-                    title: `${networkName} Payment Request Sent!`,
+                    title: 'Payment Request Sent!',
                     html: `
                         <div style="text-align: center; padding: 0 5px;">
-                            <div style="font-size: 2.5rem; color: ${networkColor}; margin-bottom: 12px;">
+                            <div style="font-size: 2.5rem; color: #00A859; margin-bottom: 12px;">
                                 <i class="fas fa-mobile-alt"></i>
                             </div>
-                            <p><strong>Check your phone for the ${networkName} payment request</strong></p>
+                            <p><strong>Check your phone for the payment request</strong></p>
                             <div style="background: #f8f9f7; padding: 10px; border-radius: 8px; margin: 12px 0; font-weight: 600;">
                                 ${formatPhoneForDisplay(recipientPhone)}
                             </div>
                             <p style="color: #666; margin-top: 5px;">
-                                Enter your ${networkName} PIN to complete the payment
+                                Enter your PIN to complete the payment
                             </p>
                             <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
-                                After payment, the data bundle will be sent to:
+                                After payment, the data bundle will be activated on:
                                 <strong>${formatPhoneForDisplay(recipientPhone)}</strong>
                             </p>
                         </div>
                     `,
-                    icon: false,
                     confirmButtonText: 'OK',
-                    confirmButtonColor: networkColor
+                    confirmButtonColor: '#00A859'
                 });
                 
                 // Show final confirmation
@@ -1235,11 +1036,7 @@
                                     <strong>${bundle.title}</strong>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                    <span>Network:</span>
-                                    <strong style="color: ${networkColor}">${networkName}</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                    <span>Sent to:</span>
+                                    <span>Phone:</span>
                                     <strong>${formatPhoneForDisplay(recipientPhone)}</strong>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; font-weight: 600;">
@@ -1252,7 +1049,6 @@
                             </p>
                         </div>
                     `,
-                    icon: false,
                     confirmButtonText: 'Done',
                     confirmButtonColor: '#27ae60'
                 });
@@ -1273,15 +1069,12 @@
                             </p>
                         </div>
                     `,
-                    icon: false,
                     confirmButtonText: 'Try Again',
                     confirmButtonColor: '#f59e0b'
                 });
             } finally {
                 isProcessing = false;
                 selectedBundle = null;
-                // Reset network to default for next purchase
-                selectedNetwork = 'safaricom';
             }
         }
 
