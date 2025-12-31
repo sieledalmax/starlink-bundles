@@ -290,71 +290,6 @@
             background-color: var(--primary-dark);
         }
 
-        /* Support Section */
-        .support-section {
-            background-color: var(--surface);
-            border-radius: var(--radius-lg);
-            padding: 1rem;
-            margin-top: 1rem;
-            box-shadow: 0 3px 8px var(--shadow);
-        }
-
-        .support-title {
-            font-size: var(--font-md);
-            font-weight: 700;
-            color: var(--primary-dark);
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .support-options {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .support-option {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            background-color: var(--background);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border);
-        }
-
-        .support-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background-color: var(--primary-light);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: var(--font-md);
-        }
-
-        .support-info h4 {
-            font-size: var(--font-sm);
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 0.125rem;
-        }
-
-        .support-info p {
-            font-size: var(--font-xs);
-            color: var(--text-light);
-        }
-
-        .support-link {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
         /* Footer */
         .footer {
             text-align: center;
@@ -578,7 +513,8 @@
         // Configuration
         const API_ENDPOINTS = {
             initiatePayment: '/api/initiate-payment',
-            normalizePhone: '/api/normalize-phone'
+            normalizePhone: '/api/normalize-phone',
+            verifyPayment: '/api/verify-payment'
         };
 
         // Bundle data organized by categories
@@ -629,6 +565,7 @@
         // State management
         let selectedBundle = null;
         let isProcessing = false;
+        let paymentReference = null;
 
         // DOM Elements
         const tabs = document.querySelectorAll('.tab');
@@ -910,6 +847,53 @@
             }
         }
 
+        // Verify payment status
+        async function verifyPayment(reference) {
+            try {
+                const response = await fetch(`${API_ENDPOINTS.verifyPayment}?reference=${reference}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Payment verification failed');
+                }
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Payment verification error:', error);
+                throw error;
+            }
+        }
+
+        // Poll for payment status
+        async function pollPaymentStatus(reference, maxAttempts = 30, interval = 2000) {
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                try {
+                    const result = await verifyPayment(reference);
+                    
+                    if (result.success && result.status === 'SUCCESS') {
+                        return { success: true, data: result.data };
+                    }
+                    
+                    if (result.success && result.status === 'FAILED') {
+                        return { success: false, error: 'Payment failed or was cancelled' };
+                    }
+                    
+                    // If still processing, wait and try again
+                    await new Promise(resolve => setTimeout(resolve, interval));
+                    
+                } catch (error) {
+                    console.warn(`Payment check attempt ${attempt} failed:`, error);
+                    await new Promise(resolve => setTimeout(resolve, interval));
+                }
+            }
+            
+            return { success: false, error: 'Payment timeout - please check your phone' };
+        }
+
         // Phone number normalization API call
         async function normalizePhoneNumber(phone) {
             try {
@@ -963,8 +947,11 @@
                     throw new Error('Failed to initiate payment');
                 }
                 
-                // Show success message with payment request sent
-                await Swal.fire({
+                // Store the reference for polling
+                paymentReference = paymentResponse.reference;
+                
+                // Show waiting for payment confirmation
+                Swal.fire({
                     title: 'Payment Request Sent!',
                     html: `
                         <div style="text-align: center; padding: 0 5px;">
@@ -978,71 +965,115 @@
                             <p style="color: #666; margin-top: 5px;">
                                 Enter your PIN to complete the payment
                             </p>
-                            <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
-                                After payment, the data bundle will be activated on:
-                                <strong>${formatPhoneForDisplay(recipientPhone)}</strong>
-                            </p>
+                            <div id="payment-status-container" style="margin-top: 15px;">
+                                <div class="swal2-loading" style="border-color: #00A859 transparent #00A859 transparent;"></div>
+                                <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
+                                    Waiting for payment confirmation...
+                                </p>
+                            </div>
                         </div>
                     `,
-                    confirmButtonText: 'OK',
-                    confirmButtonColor: '#00A859'
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancel',
+                    cancelButtonColor: '#f59e0b',
+                    didOpen: () => {
+                        // Start polling for payment status
+                        pollPaymentStatus(paymentReference)
+                            .then(async (pollResult) => {
+                                if (pollResult.success) {
+                                    // Payment successful
+                                    Swal.close();
+                                    await showPaymentSuccess(bundle, recipientPhone, pollResult.data);
+                                } else {
+                                    // Payment failed or timed out
+                                    Swal.close();
+                                    await showPaymentError(pollResult.error);
+                                }
+                            })
+                            .catch(async (error) => {
+                                Swal.close();
+                                await showPaymentError(error.message || 'Payment verification failed');
+                            });
+                    }
                 });
-                
-                // Show final confirmation
-                await Swal.fire({
-                    title: 'Payment Successful!',
-                    html: `
-                        <div style="text-align: center; padding: 0 5px;">
-                            <div style="font-size: 3rem; color: #22c55e; margin-bottom: 12px;">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <p><strong>Your data bundle purchase is complete!</strong></p>
-                            <div style="background: #f8f9f7; padding: 12px; border-radius: 8px; margin: 12px 0;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                    <span>Bundle:</span>
-                                    <strong>${bundle.title}</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                    <span>Phone:</span>
-                                    <strong>${formatPhoneForDisplay(recipientPhone)}</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; font-weight: 600;">
-                                    <span>Amount Paid:</span>
-                                    <strong style="color: var(--primary-dark);">Ksh ${bundle.price}</strong>
-                                </div>
-                            </div>
-                            <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
-                                The data bundle will be activated within 2-5 minutes. You'll receive an SMS confirmation.
-                            </p>
-                        </div>
-                    `,
-                    confirmButtonText: 'Done',
-                    confirmButtonColor: '#27ae60'
+
+                // If user cancels during polling
+                Swal.getCancelButton().addEventListener('click', () => {
+                    Swal.close();
+                    showPaymentError('Payment process cancelled');
                 });
                 
             } catch (error) {
                 console.error('Payment error:', error);
-                
-                await Swal.fire({
-                    title: 'Payment Failed',
-                    html: `
-                        <div style="text-align: center; padding: 0 5px;">
-                            <div style="font-size: 2.5rem; color: #f59e0b; margin-bottom: 12px;">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <p><strong>${error.message || 'Payment processing failed'}</strong></p>
-                            <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
-                                Please check your phone network and balance, then try again
-                            </p>
-                        </div>
-                    `,
-                    confirmButtonText: 'Try Again',
-                    confirmButtonColor: '#f59e0b'
-                });
+                await showPaymentError(error.message || 'Payment processing failed');
             } finally {
                 isProcessing = false;
                 selectedBundle = null;
+                paymentReference = null;
             }
+        }
+
+        // Show payment success
+        async function showPaymentSuccess(bundle, recipientPhone, paymentData) {
+            await Swal.fire({
+                title: 'Payment Successful!',
+                html: `
+                    <div style="text-align: center; padding: 0 5px;">
+                        <div style="font-size: 3rem; color: #22c55e; margin-bottom: 12px;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <p><strong>Your data bundle purchase is complete!</strong></p>
+                        <div style="background: #f8f9f7; padding: 12px; border-radius: 8px; margin: 12px 0;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Bundle:</span>
+                                <strong>${bundle.title}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Phone:</span>
+                                <strong>${formatPhoneForDisplay(recipientPhone)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Transaction ID:</span>
+                                <strong style="font-size: 0.8rem;">${paymentData?.transaction_id || paymentReference || 'N/A'}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-weight: 600;">
+                                <span>Amount Paid:</span>
+                                <strong style="color: var(--primary-dark);">Ksh ${bundle.price}</strong>
+                            </div>
+                        </div>
+                        <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
+                            The data bundle will be activated within 2-5 minutes. You'll receive an SMS confirmation.
+                        </p>
+                    </div>
+                `,
+                confirmButtonText: 'Done',
+                confirmButtonColor: '#27ae60',
+                allowOutsideClick: false
+            });
+        }
+
+        // Show payment error
+        async function showPaymentError(errorMessage) {
+            await Swal.fire({
+                title: 'Payment Failed',
+                html: `
+                    <div style="text-align: center; padding: 0 5px;">
+                        <div style="font-size: 2.5rem; color: #f59e0b; margin-bottom: 12px;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <p><strong>${errorMessage}</strong></p>
+                        <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
+                            Please check your phone network and balance, then try again
+                        </p>
+                    </div>
+                `,
+                confirmButtonText: 'Try Again',
+                confirmButtonColor: '#f59e0b',
+                allowOutsideClick: false
+            });
         }
 
         // Initialize page when DOM is loaded
