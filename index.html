@@ -565,8 +565,6 @@
         // State management
         let selectedBundle = null;
         let isProcessing = false;
-        let paymentReference = null;
-        let pollingInterval = null;
 
         // DOM Elements
         const tabs = document.querySelectorAll('.tab');
@@ -848,17 +846,15 @@
             }
         }
 
-        // Verify payment status
+        // Verify payment status - SIMPLIFIED VERSION
         async function verifyPayment(reference) {
             try {
-                console.log(`Verifying payment with reference: ${reference}`);
                 const response = await fetch(`${API_ENDPOINTS.verifyPayment}?reference=${reference}`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });
                 
                 const result = await response.json();
-                console.log('Verification response:', result);
                 
                 if (!response.ok) {
                     throw new Error(result.error || 'Payment verification failed');
@@ -871,32 +867,34 @@
             }
         }
 
-        // Poll for payment status with improved logic
+        // Poll for payment status - SIMPLIFIED AND FIXED
         async function pollPaymentStatus(reference) {
-            const maxAttempts = 15; // Reduced from 30
-            const interval = 3000; // 3 seconds
+            const maxAttempts = 10; // Reduced to 10 attempts
+            const interval = 4000; // 4 seconds
             let attempts = 0;
             
             return new Promise((resolve) => {
                 const poll = async () => {
                     attempts++;
-                    console.log(`Polling attempt ${attempts}/${maxAttempts}`);
                     
                     try {
                         const result = await verifyPayment(reference);
                         
-                        console.log('Poll result:', result);
-                        
-                        // Check various success statuses
+                        // Check if payment is successful
                         if (result.success) {
-                            if (result.status === 'SUCCESS' || result.status === 'COMPLETED' || result.data?.status === 'SUCCESS') {
-                                console.log('Payment successful!');
+                            // Check various possible success statuses from PayHero
+                            if (result.status === 'SUCCESS' || 
+                                result.status === 'COMPLETED' || 
+                                result.data?.status === 'SUCCESS' ||
+                                result.data?.status === 'COMPLETED') {
                                 resolve({ success: true, data: result.data });
                                 return;
                             }
                             
-                            if (result.status === 'FAILED' || result.status === 'CANCELLED') {
-                                console.log('Payment failed or cancelled');
+                            // Check if payment failed
+                            if (result.status === 'FAILED' || 
+                                result.status === 'CANCELLED' ||
+                                result.data?.status === 'FAILED') {
                                 resolve({ success: false, error: 'Payment failed or was cancelled' });
                                 return;
                             }
@@ -904,7 +902,6 @@
                         
                         // If we've reached max attempts
                         if (attempts >= maxAttempts) {
-                            console.log('Max polling attempts reached');
                             resolve({ success: false, error: 'Payment timeout - please check your phone and try again' });
                             return;
                         }
@@ -913,13 +910,11 @@
                         setTimeout(poll, interval);
                         
                     } catch (error) {
-                        console.warn(`Polling error on attempt ${attempts}:`, error);
-                        
                         // If we've reached max attempts
                         if (attempts >= maxAttempts) {
                             resolve({ 
                                 success: false, 
-                                error: 'Unable to verify payment status. Please check if payment was completed.' 
+                                error: 'Unable to verify payment. Please check if payment was completed on your phone.' 
                             });
                             return;
                         }
@@ -953,7 +948,7 @@
             }
         }
 
-        // Main payment flow
+        // Main payment flow - FIXED VERSION
         async function initiatePayment(bundle, recipientPhone) {
             if (isProcessing) return;
             
@@ -987,10 +982,7 @@
                     throw new Error('Failed to initiate payment');
                 }
                 
-                // Store the reference for polling
-                paymentReference = paymentResponse.reference;
-                
-                // Show waiting for payment confirmation
+                // Show payment request sent message
                 Swal.fire({
                     title: 'Payment Request Sent!',
                     html: `
@@ -1005,48 +997,40 @@
                             <p style="color: #666; margin-top: 5px;">
                                 Enter your PIN to complete the payment
                             </p>
-                            <div id="payment-status-container" style="margin-top: 15px;">
-                                <div class="swal2-loading" style="border-color: #00A859 transparent #00A859 transparent;"></div>
-                                <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
-                                    Waiting for payment confirmation... (This may take up to 45 seconds)
-                                </p>
-                            </div>
                         </div>
                     `,
-                    showConfirmButton: false,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    showCancelButton: true,
-                    cancelButtonText: 'Cancel Payment',
-                    cancelButtonColor: '#f59e0b',
-                    didOpen: () => {
-                        // Start polling for payment status
-                        pollPaymentStatus(paymentReference)
-                            .then(async (pollResult) => {
-                                console.log('Polling complete:', pollResult);
-                                if (pollResult.success) {
-                                    // Payment successful
-                                    Swal.close();
-                                    await showPaymentSuccess(bundle, recipientPhone, pollResult.data);
-                                } else {
-                                    // Payment failed or timed out
-                                    Swal.close();
-                                    await showPaymentError(pollResult.error);
-                                }
-                            })
-                            .catch(async (error) => {
-                                console.error('Polling error:', error);
-                                Swal.close();
-                                await showPaymentError(error.message || 'Payment verification failed');
-                            });
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#00A859',
+                    allowOutsideClick: false
+                }).then(async () => {
+                    // After user acknowledges, start polling for payment status
+                    Swal.fire({
+                        title: 'Verifying Payment',
+                        html: `
+                            <div style="text-align: center; padding: 0 5px;">
+                                <div class="swal2-loading" style="border-color: #00A859 transparent #00A859 transparent; width: 60px; height: 60px; margin: 15px auto;"></div>
+                                <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
+                                    Verifying your payment... (This may take a few seconds)
+                                </p>
+                            </div>
+                        `,
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false
+                    });
+                    
+                    // Start polling for payment status
+                    const pollResult = await pollPaymentStatus(paymentResponse.reference);
+                    
+                    if (pollResult.success) {
+                        // Payment successful
+                        Swal.close();
+                        await showPaymentSuccess(bundle, recipientPhone, pollResult.data);
+                    } else {
+                        // Payment failed or timed out
+                        Swal.close();
+                        await showPaymentError(pollResult.error);
                     }
-                });
-
-                // If user cancels during polling
-                Swal.getCancelButton().addEventListener('click', () => {
-                    console.log('User cancelled payment process');
-                    Swal.close();
-                    showPaymentError('Payment process was cancelled');
                 });
                 
             } catch (error) {
@@ -1055,17 +1039,11 @@
             } finally {
                 isProcessing = false;
                 selectedBundle = null;
-                paymentReference = null;
-                if (pollingInterval) {
-                    clearInterval(pollingInterval);
-                    pollingInterval = null;
-                }
             }
         }
 
         // Show payment success
         async function showPaymentSuccess(bundle, recipientPhone, paymentData) {
-            console.log('Showing payment success:', paymentData);
             await Swal.fire({
                 title: 'Payment Successful!',
                 html: `
@@ -1082,10 +1060,6 @@
                             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                 <span>Phone:</span>
                                 <strong>${formatPhoneForDisplay(recipientPhone)}</strong>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span>Transaction ID:</span>
-                                <strong style="font-size: 0.8rem;">${paymentData?.transaction_id || paymentReference || 'N/A'}</strong>
                             </div>
                             <div style="display: flex; justify-content: space-between; font-weight: 600;">
                                 <span>Amount Paid:</span>
@@ -1105,7 +1079,6 @@
 
         // Show payment error
         async function showPaymentError(errorMessage) {
-            console.log('Showing payment error:', errorMessage);
             await Swal.fire({
                 title: 'Payment Status',
                 html: `
