@@ -566,6 +566,7 @@
     let selectedBundle = null;
     let isProcessing = false;
     let paymentReference = null;
+    let pollingInterval = null;
 
     // DOM Elements
     const tabs = document.querySelectorAll('.tab');
@@ -850,12 +851,14 @@
     // Verify payment status
     async function verifyPayment(reference) {
         try {
+            console.log(`Verifying payment with reference: ${reference}`);
             const response = await fetch(`${API_ENDPOINTS.verifyPayment}?reference=${reference}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });
             
             const result = await response.json();
+            console.log('Verification response:', result);
             
             if (!response.ok) {
                 throw new Error(result.error || 'Payment verification failed');
@@ -868,34 +871,32 @@
         }
     }
 
-    // Poll for payment status
+    // Poll for payment status - ORIGINAL WORKING VERSION
     async function pollPaymentStatus(reference) {
-        const maxAttempts = 20; // Increased attempts for better coverage
-        const interval = 3000; // 3 seconds
+        const maxAttempts = 15;
+        const interval = 3000;
         let attempts = 0;
         
         return new Promise((resolve) => {
             const poll = async () => {
                 attempts++;
+                console.log(`Polling attempt ${attempts}/${maxAttempts}`);
                 
                 try {
                     const result = await verifyPayment(reference);
                     
-                    // Check if payment is successful
+                    console.log('Poll result:', result);
+                    
+                    // Check various success statuses
                     if (result.success) {
-                        // Check various possible success statuses from PayHero
-                        if (result.status === 'SUCCESS' || 
-                            result.status === 'COMPLETED' || 
-                            result.data?.status === 'SUCCESS' ||
-                            result.data?.status === 'COMPLETED') {
+                        if (result.status === 'SUCCESS' || result.status === 'COMPLETED' || result.data?.status === 'SUCCESS') {
+                            console.log('Payment successful!');
                             resolve({ success: true, data: result.data });
                             return;
                         }
                         
-                        // Check if payment failed
-                        if (result.status === 'FAILED' || 
-                            result.status === 'CANCELLED' ||
-                            result.data?.status === 'FAILED') {
+                        if (result.status === 'FAILED' || result.status === 'CANCELLED') {
+                            console.log('Payment failed or cancelled');
                             resolve({ success: false, error: 'Payment failed or was cancelled' });
                             return;
                         }
@@ -903,6 +904,7 @@
                     
                     // If we've reached max attempts
                     if (attempts >= maxAttempts) {
+                        console.log('Max polling attempts reached');
                         resolve({ success: false, error: 'Payment timeout - please check your phone and try again' });
                         return;
                     }
@@ -911,11 +913,13 @@
                     setTimeout(poll, interval);
                     
                 } catch (error) {
+                    console.warn(`Polling error on attempt ${attempts}:`, error);
+                    
                     // If we've reached max attempts
                     if (attempts >= maxAttempts) {
                         resolve({ 
                             success: false, 
-                            error: 'Unable to verify payment. Please check if payment was completed on your phone.' 
+                            error: 'Unable to verify payment status. Please check if payment was completed.' 
                         });
                         return;
                     }
@@ -949,7 +953,7 @@
         }
     }
 
-    // Main payment flow - UPDATED: No OK button, verification starts immediately
+    // Main payment flow - UPDATED: No OK button but keeps working verification
     async function initiatePayment(bundle, recipientPhone) {
         if (isProcessing) return;
         
@@ -983,10 +987,11 @@
                 throw new Error('Failed to initiate payment');
             }
             
+            // Store the reference for polling
             paymentReference = paymentResponse.reference;
             
-            // IMMEDIATELY show payment request sent message WITHOUT OK button
-            // and start verification automatically
+            // Show waiting for payment confirmation WITHOUT OK BUTTON
+            // Verification starts IMMEDIATELY
             Swal.fire({
                 title: 'Payment Request Sent!',
                 html: `
@@ -1001,24 +1006,25 @@
                         <p style="color: #666; margin-top: 5px;">
                             Enter your PIN to complete the payment
                         </p>
-                        <div style="margin-top: 15px; padding: 10px; background: #f8f9f7; border-radius: 8px;">
-                            <div class="swal2-loading" style="border-color: #00A859 transparent #00A859 transparent; width: 40px; height: 40px; margin: 0 auto;"></div>
+                        <div id="payment-status-container" style="margin-top: 15px;">
+                            <div class="swal2-loading" style="border-color: #00A859 transparent #00A859 transparent;"></div>
                             <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
-                                Waiting for payment confirmation...
+                                Waiting for payment confirmation... (This may take up to 45 seconds)
                             </p>
                         </div>
                     </div>
                 `,
                 showConfirmButton: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
                 showCancelButton: true,
                 cancelButtonText: 'Cancel Payment',
                 cancelButtonColor: '#f59e0b',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
                 didOpen: () => {
-                    // START VERIFICATION IMMEDIATELY - no need for user to click OK
+                    // Start polling for payment status IMMEDIATELY
                     pollPaymentStatus(paymentReference)
                         .then(async (pollResult) => {
+                            console.log('Polling complete:', pollResult);
                             if (pollResult.success) {
                                 // Payment successful
                                 Swal.close();
@@ -1037,25 +1043,30 @@
                 }
             });
 
-            // Handle cancel button
+            // If user cancels during polling
             Swal.getCancelButton().addEventListener('click', () => {
+                console.log('User cancelled payment process');
                 Swal.close();
                 showPaymentError('Payment process was cancelled');
             });
             
         } catch (error) {
             console.error('Payment initiation error:', error);
-            Swal.close();
             await showPaymentError(error.message || 'Payment processing failed');
         } finally {
             isProcessing = false;
             selectedBundle = null;
             paymentReference = null;
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
         }
     }
 
     // Show payment success
     async function showPaymentSuccess(bundle, recipientPhone, paymentData) {
+        console.log('Showing payment success:', paymentData);
         await Swal.fire({
             title: 'Payment Successful!',
             html: `
@@ -1072,6 +1083,10 @@
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                             <span>Phone:</span>
                             <strong>${formatPhoneForDisplay(recipientPhone)}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Transaction ID:</span>
+                            <strong style="font-size: 0.8rem;">${paymentData?.transaction_id || paymentReference || 'N/A'}</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; font-weight: 600;">
                             <span>Amount Paid:</span>
@@ -1091,6 +1106,7 @@
 
     // Show payment error
     async function showPaymentError(errorMessage) {
+        console.log('Showing payment error:', errorMessage);
         await Swal.fire({
             title: 'Payment Status',
             html: `
