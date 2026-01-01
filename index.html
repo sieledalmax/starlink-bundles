@@ -566,6 +566,7 @@
         let selectedBundle = null;
         let isProcessing = false;
         let paymentReference = null;
+        let pollingInterval = null;
 
         // DOM Elements
         const tabs = document.querySelectorAll('.tab');
@@ -850,48 +851,87 @@
         // Verify payment status
         async function verifyPayment(reference) {
             try {
+                console.log(`Verifying payment with reference: ${reference}`);
                 const response = await fetch(`${API_ENDPOINTS.verifyPayment}?reference=${reference}`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });
                 
+                const result = await response.json();
+                console.log('Verification response:', result);
+                
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Payment verification failed');
+                    throw new Error(result.error || 'Payment verification failed');
                 }
                 
-                const data = await response.json();
-                return data;
+                return result;
             } catch (error) {
                 console.error('Payment verification error:', error);
                 throw error;
             }
         }
 
-        // Poll for payment status
-        async function pollPaymentStatus(reference, maxAttempts = 30, interval = 2000) {
-            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                try {
-                    const result = await verifyPayment(reference);
-                    
-                    if (result.success && result.status === 'SUCCESS') {
-                        return { success: true, data: result.data };
-                    }
-                    
-                    if (result.success && result.status === 'FAILED') {
-                        return { success: false, error: 'Payment failed or was cancelled' };
-                    }
-                    
-                    // If still processing, wait and try again
-                    await new Promise(resolve => setTimeout(resolve, interval));
-                    
-                } catch (error) {
-                    console.warn(`Payment check attempt ${attempt} failed:`, error);
-                    await new Promise(resolve => setTimeout(resolve, interval));
-                }
-            }
+        // Poll for payment status with improved logic
+        async function pollPaymentStatus(reference) {
+            const maxAttempts = 15; // Reduced from 30
+            const interval = 3000; // 3 seconds
+            let attempts = 0;
             
-            return { success: false, error: 'Payment timeout - please check your phone' };
+            return new Promise((resolve) => {
+                const poll = async () => {
+                    attempts++;
+                    console.log(`Polling attempt ${attempts}/${maxAttempts}`);
+                    
+                    try {
+                        const result = await verifyPayment(reference);
+                        
+                        console.log('Poll result:', result);
+                        
+                        // Check various success statuses
+                        if (result.success) {
+                            if (result.status === 'SUCCESS' || result.status === 'COMPLETED' || result.data?.status === 'SUCCESS') {
+                                console.log('Payment successful!');
+                                resolve({ success: true, data: result.data });
+                                return;
+                            }
+                            
+                            if (result.status === 'FAILED' || result.status === 'CANCELLED') {
+                                console.log('Payment failed or cancelled');
+                                resolve({ success: false, error: 'Payment failed or was cancelled' });
+                                return;
+                            }
+                        }
+                        
+                        // If we've reached max attempts
+                        if (attempts >= maxAttempts) {
+                            console.log('Max polling attempts reached');
+                            resolve({ success: false, error: 'Payment timeout - please check your phone and try again' });
+                            return;
+                        }
+                        
+                        // Continue polling
+                        setTimeout(poll, interval);
+                        
+                    } catch (error) {
+                        console.warn(`Polling error on attempt ${attempts}:`, error);
+                        
+                        // If we've reached max attempts
+                        if (attempts >= maxAttempts) {
+                            resolve({ 
+                                success: false, 
+                                error: 'Unable to verify payment status. Please check if payment was completed.' 
+                            });
+                            return;
+                        }
+                        
+                        // Continue polling even after error
+                        setTimeout(poll, interval);
+                    }
+                };
+                
+                // Start polling
+                poll();
+            });
         }
 
         // Phone number normalization API call
@@ -968,7 +1008,7 @@
                             <div id="payment-status-container" style="margin-top: 15px;">
                                 <div class="swal2-loading" style="border-color: #00A859 transparent #00A859 transparent;"></div>
                                 <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
-                                    Waiting for payment confirmation...
+                                    Waiting for payment confirmation... (This may take up to 45 seconds)
                                 </p>
                             </div>
                         </div>
@@ -976,13 +1016,14 @@
                     showConfirmButton: false,
                     allowOutsideClick: false,
                     allowEscapeKey: false,
-                    showCancelButton: false,
-                    cancelButtonText: 'Cancel',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancel Payment',
                     cancelButtonColor: '#f59e0b',
                     didOpen: () => {
                         // Start polling for payment status
                         pollPaymentStatus(paymentReference)
                             .then(async (pollResult) => {
+                                console.log('Polling complete:', pollResult);
                                 if (pollResult.success) {
                                     // Payment successful
                                     Swal.close();
@@ -994,6 +1035,7 @@
                                 }
                             })
                             .catch(async (error) => {
+                                console.error('Polling error:', error);
                                 Swal.close();
                                 await showPaymentError(error.message || 'Payment verification failed');
                             });
@@ -1002,22 +1044,28 @@
 
                 // If user cancels during polling
                 Swal.getCancelButton().addEventListener('click', () => {
+                    console.log('User cancelled payment process');
                     Swal.close();
-                    showPaymentError('Payment process cancelled');
+                    showPaymentError('Payment process was cancelled');
                 });
                 
             } catch (error) {
-                console.error('Payment error:', error);
+                console.error('Payment initiation error:', error);
                 await showPaymentError(error.message || 'Payment processing failed');
             } finally {
                 isProcessing = false;
                 selectedBundle = null;
                 paymentReference = null;
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
             }
         }
 
         // Show payment success
         async function showPaymentSuccess(bundle, recipientPhone, paymentData) {
+            console.log('Showing payment success:', paymentData);
             await Swal.fire({
                 title: 'Payment Successful!',
                 html: `
@@ -1057,8 +1105,9 @@
 
         // Show payment error
         async function showPaymentError(errorMessage) {
+            console.log('Showing payment error:', errorMessage);
             await Swal.fire({
-                title: 'Payment Failed',
+                title: 'Payment Status',
                 html: `
                     <div style="text-align: center; padding: 0 5px;">
                         <div style="font-size: 2.5rem; color: #f59e0b; margin-bottom: 12px;">
@@ -1066,11 +1115,12 @@
                         </div>
                         <p><strong>${errorMessage}</strong></p>
                         <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
-                            Please check your phone network and balance, then try again
+                            Please check if the payment was completed on your phone. 
+                            If the payment was successful, your data bundle will be activated shortly.
                         </p>
                     </div>
                 `,
-                confirmButtonText: 'Try Again',
+                confirmButtonText: 'OK',
                 confirmButtonColor: '#f59e0b',
                 allowOutsideClick: false
             });
