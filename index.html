@@ -8,30 +8,33 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-dark: #1a5d1a;
-            --primary: #27ae60;
-            --primary-light: #2ecc71;
-            --accent: #a3e635;
-            --background: #f7fdf9;
+            --primary-dark: #1a237e;
+            --primary: #3949ab;
+            --primary-light: #5c6bc0;
+            --accent: #00bcd4;
+            --accent-light: #4dd0e1;
+            --background: #f5f7ff;
             --surface: #ffffff;
-            --text: #1a1a1a;
-            --text-light: #666666;
-            --border: #e0e0e0;
-            --shadow: rgba(0, 0, 0, 0.08);
-            --shadow-hover: rgba(0, 0, 0, 0.15);
-            --success: #27ae60;
-            --warning: #f39c12;
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 24px;
+            --surface-light: #f8f9ff;
+            --text: #1a1a2e;
+            --text-light: #5a5a7a;
+            --border: #e0e4ff;
+            --shadow: rgba(57, 73, 171, 0.08);
+            --shadow-hover: rgba(57, 73, 171, 0.15);
+            --success: #00c853;
+            --warning: #ff9800;
+            --info: #2196f3;
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
             --font-xs: 0.75rem;
             --font-sm: 0.875rem;
             --font-md: 1rem;
             --font-lg: 1.125rem;
             --font-xl: 1.25rem;
             --font-2xl: 1.5rem;
-            --safaricom-color: #00A859;
+            --font-3xl: 1.75rem;
         }
 
         * {
@@ -41,54 +44,86 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background-color: var(--background);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, var(--background) 0%, #f0f2ff 100%);
             color: var(--text);
-            line-height: 1.5;
+            line-height: 1.6;
             font-size: var(--font-sm);
             -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
         }
 
         /* Header Styles */
         .header {
             background: linear-gradient(135deg, var(--primary-dark), var(--primary));
             color: white;
-            padding: 1rem 0.75rem;
+            padding: 1.25rem 1rem;
             text-align: center;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 20px rgba(26, 35, 126, 0.2);
+            border-bottom-left-radius: var(--radius-lg);
+            border-bottom-right-radius: var(--radius-lg);
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .header h1 {
             font-size: var(--font-xl);
-            font-weight: 700;
-            letter-spacing: 0.5px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
             margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .header h1 i {
+            color: var(--accent-light);
         }
 
         .header-subtitle {
             font-size: var(--font-xs);
             opacity: 0.9;
             font-weight: 500;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            display: inline-block;
         }
 
         /* Main Container */
         .container {
             max-width: 100%;
-            padding: 0.75rem;
+            padding: 1rem;
         }
 
         /* Hero Section */
         .hero {
-            background: linear-gradient(to right, #e8f9f0, #f0f9f4);
+            background: linear-gradient(135deg, var(--surface), var(--surface-light));
             border-radius: var(--radius-lg);
-            padding: 1rem;
-            margin-bottom: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
             text-align: center;
             border: 1px solid var(--border);
-            box-shadow: 0 4px 8px var(--shadow);
+            box-shadow: 0 8px 24px var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--primary-light));
         }
 
         .hero h2 {
@@ -100,25 +135,34 @@
 
         .hero p {
             color: var(--text-light);
-            font-size: var(--font-xs);
-            margin-bottom: 0.5rem;
+            font-size: var(--font-sm);
+            margin-bottom: 0.75rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .network-tags {
             display: flex;
             justify-content: center;
             gap: 0.5rem;
-            margin-top: 0.75rem;
+            margin-top: 1rem;
             flex-wrap: wrap;
         }
 
         .tag {
-            background-color: var(--primary-light);
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
             color: white;
-            padding: 0.25rem 0.5rem;
+            padding: 0.375rem 0.75rem;
             border-radius: 20px;
             font-size: var(--font-xs);
             font-weight: 600;
+            box-shadow: 0 3px 8px rgba(57, 73, 171, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .tag:hover {
+            transform: translateY(-2px);
         }
 
         /* Bundle Categories */
@@ -126,7 +170,7 @@
             display: flex;
             overflow-x: auto;
             gap: 0.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             padding-bottom: 0.5rem;
             scrollbar-width: none;
         }
@@ -136,123 +180,164 @@
         }
 
         .tab {
-            background-color: var(--surface);
-            border: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--surface), var(--surface-light));
+            border: 2px solid var(--border);
             border-radius: var(--radius-xl);
-            padding: 0.5rem 0.75rem;
+            padding: 0.625rem 1rem;
             font-size: var(--font-xs);
-            font-weight: 600;
+            font-weight: 700;
             white-space: nowrap;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            color: var(--text-light);
+            box-shadow: 0 3px 6px var(--shadow);
         }
 
         .tab.active {
-            background-color: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
             border-color: var(--primary);
+            box-shadow: 0 6px 12px rgba(57, 73, 171, 0.25);
+        }
+
+        .tab i {
+            margin-right: 0.375rem;
         }
 
         /* Bundle Grid */
         .bundles-grid {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
+            gap: 2rem;
+            margin-bottom: 2rem;
         }
 
         .category-section {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 1rem;
         }
 
         .category-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.25rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--primary-light);
+            gap: 1rem;
+            padding: 0.75rem 0;
+            position: relative;
+        }
+
+        .category-header::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+            border-radius: 2px;
         }
 
         .category-title {
-            font-size: var(--font-md);
-            font-weight: 700;
+            font-size: var(--font-lg);
+            font-weight: 800;
             color: var(--primary-dark);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
         }
 
         .category-title i {
-            color: var(--primary);
+            color: var(--accent);
+            font-size: 1.25rem;
         }
 
         .category-subtitle {
             font-size: var(--font-xs);
             color: var(--text-light);
             font-weight: 500;
+            background: var(--surface-light);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
         }
 
         .category-bundles {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 0.75rem;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 1rem;
         }
 
         .bundle-card {
-            background-color: var(--surface);
+            background: linear-gradient(135deg, var(--surface), var(--surface-light));
             border-radius: var(--radius-md);
-            padding: 0.875rem;
-            box-shadow: 0 3px 6px var(--shadow);
+            padding: 1.25rem;
+            box-shadow: 0 6px 16px var(--shadow);
             border: 1px solid var(--border);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             flex-direction: column;
             position: relative;
             overflow: hidden;
         }
 
+        .bundle-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--primary-light));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .bundle-card:hover::before {
+            opacity: 1;
+        }
+
         .bundle-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 12px var(--shadow-hover);
-            border-color: var(--primary-light);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 24px var(--shadow-hover);
+            border-color: var(--accent-light);
         }
 
         .bundle-card.featured {
-            border-left: 4px solid var(--accent);
+            border: 2px solid var(--accent);
         }
 
         .bundle-card.popular {
-            border-left: 4px solid var(--warning);
+            border: 2px solid var(--warning);
         }
 
         .bundle-badge {
             position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            background-color: var(--primary);
+            top: 0.75rem;
+            right: 0.75rem;
+            background: linear-gradient(135deg, var(--accent), var(--info));
             color: white;
             font-size: 0.6rem;
-            padding: 0.125rem 0.375rem;
-            border-radius: 10px;
-            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 3px 6px rgba(0, 188, 212, 0.3);
+            z-index: 2;
         }
 
         .bundle-title {
-            font-size: var(--font-sm);
-            font-weight: 700;
+            font-size: var(--font-md);
+            font-weight: 800;
             color: var(--text);
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.375rem;
             line-height: 1.3;
+            padding-right: 2rem;
         }
 
         .bundle-subtitle {
             font-size: var(--font-xs);
             color: var(--text-light);
-            margin-bottom: 0.5rem;
-            line-height: 1.2;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+            min-height: 2.5rem;
         }
 
         .bundle-details {
@@ -263,99 +348,121 @@
         }
 
         .bundle-price {
-            font-weight: 800;
+            font-weight: 900;
             color: var(--primary-dark);
-            font-size: var(--font-lg);
+            font-size: var(--font-xl);
+            line-height: 1;
         }
 
         .bundle-currency {
             font-size: var(--font-xs);
             font-weight: 600;
             color: var(--text-light);
+            margin-top: 0.25rem;
         }
 
         .bundle-buy-btn {
-            background-color: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
             border: none;
             border-radius: var(--radius-sm);
-            padding: 0.375rem 0.75rem;
+            padding: 0.5rem 1rem;
             font-size: var(--font-xs);
-            font-weight: 700;
+            font-weight: 800;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(57, 73, 171, 0.3);
+            letter-spacing: 0.5px;
         }
 
         .bundle-buy-btn:hover {
-            background-color: var(--primary-dark);
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(57, 73, 171, 0.4);
         }
 
         /* Footer */
         .footer {
             text-align: center;
-            padding: 1.5rem 0.75rem;
+            padding: 2rem 1rem;
             color: var(--text-light);
             font-size: var(--font-xs);
+            background: linear-gradient(135deg, var(--surface), var(--surface-light));
             border-top: 1px solid var(--border);
-            margin-top: 1.5rem;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            margin-top: 2rem;
         }
 
         .footer-logo {
-            font-weight: 700;
+            font-weight: 800;
             color: var(--primary);
-            font-size: var(--font-md);
-            margin-bottom: 0.5rem;
+            font-size: var(--font-lg);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .footer-logo i {
+            color: var(--accent);
         }
 
         /* Phone Input Styles */
         .input-wrapper {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .input-label {
             display: block;
             font-size: var(--font-sm);
-            font-weight: 600;
+            font-weight: 700;
             color: var(--primary-dark);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+        }
+
+        .input-label i {
+            color: var(--accent);
         }
 
         /* Phone Input Styles */
         .phone-input-group {
             display: flex;
             border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
+            border-radius: var(--radius-md);
             overflow: hidden;
-            transition: border-color 0.2s;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px var(--shadow);
         }
 
         .phone-input-group:focus-within {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(0, 188, 212, 0.1);
         }
 
         .phone-prefix {
-            background-color: var(--background);
-            padding: 0.75rem;
-            font-weight: 600;
-            color: var(--text);
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+            padding: 0.875rem;
+            font-weight: 700;
             border-right: 2px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
-            min-width: 70px;
+            min-width: 80px;
         }
 
         .phone-input {
             flex: 1;
-            padding: 0.75rem;
+            padding: 0.875rem;
             border: none;
             outline: none;
             font-size: var(--font-md);
             background-color: white;
+            font-weight: 600;
         }
 
         .phone-input::placeholder {
@@ -365,84 +472,109 @@
         .input-note {
             font-size: var(--font-xs);
             color: var(--text-light);
-            margin-top: 0.5rem;
+            margin-top: 0.75rem;
             line-height: 1.4;
+            padding-left: 0.5rem;
         }
 
         /* Summary Box */
         .summary-box {
-            background: #f8f9f7;
-            padding: 1rem;
+            background: linear-gradient(135deg, var(--surface-light), var(--surface));
+            padding: 1.5rem;
             border-radius: var(--radius-md);
             margin: 1.5rem 0;
-            border: 1px solid var(--border);
+            border: 2px solid var(--border);
+            box-shadow: 0 6px 12px var(--shadow);
         }
 
         .summary-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
             font-size: var(--font-sm);
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed var(--border);
         }
 
         .summary-row.total {
-            font-weight: 700;
+            font-weight: 800;
             font-size: var(--font-md);
-            margin-top: 0.5rem;
-            padding-top: 0.5rem;
-            border-top: 1px solid var(--border);
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--border);
+            border-bottom: none;
         }
 
         .summary-row.total span:last-child {
             color: var(--primary-dark);
+            font-size: var(--font-lg);
         }
 
         /* SweetAlert Custom Styles */
         .swal2-popup {
             border-radius: var(--radius-lg) !important;
-            padding: 1.25rem !important;
+            padding: 1.5rem !important;
             max-width: 95% !important;
             width: auto !important;
+            border: 2px solid var(--border) !important;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15) !important;
         }
 
         .swal2-title {
             color: var(--primary-dark) !important;
-            font-weight: 700 !important;
+            font-weight: 800 !important;
             font-size: var(--font-lg) !important;
-            margin-bottom: 0.75rem !important;
+            margin-bottom: 1rem !important;
         }
 
         .swal2-html-container {
             margin: 1rem 0 0 0 !important;
             padding: 0 !important;
+            font-size: var(--font-sm) !important;
         }
 
         .swal2-confirm {
-            background: linear-gradient(90deg, var(--primary), var(--primary-dark)) !important;
-            border-radius: var(--radius-sm) !important;
-            font-weight: 600 !important;
-            padding: 0.75rem 1.5rem !important;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+            border-radius: var(--radius-md) !important;
+            font-weight: 700 !important;
+            padding: 0.875rem 1.75rem !important;
             font-size: var(--font-sm) !important;
-            margin-top: 0.5rem !important;
+            margin-top: 1rem !important;
+            border: none !important;
+            box-shadow: 0 6px 12px rgba(57, 73, 171, 0.3) !important;
         }
 
         .swal2-actions {
-            margin-top: 1rem !important;
+            margin-top: 1.5rem !important;
+        }
+
+        /* Loading Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .loading-float {
+            animation: float 2s ease-in-out infinite;
         }
 
         /* Responsive adjustments */
         @media (max-width: 360px) {
             .bundles-grid {
-                gap: 1.25rem;
+                gap: 1.5rem;
             }
             
             .category-bundles {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-                gap: 0.5rem;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 0.875rem;
             }
             
             .hero h2 {
                 font-size: var(--font-md);
+            }
+            
+            .header {
+                padding: 1rem 0.75rem;
             }
         }
 
@@ -453,44 +585,84 @@
             }
             
             .category-bundles {
-                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-                gap: 1rem;
+                grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+                gap: 1.25rem;
             }
             
             .bundles-grid {
-                gap: 2rem;
+                gap: 2.5rem;
             }
+            
+            .hero {
+                padding: 2rem;
+            }
+            
+            .header h1 {
+                font-size: var(--font-2xl);
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--surface-light);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
         }
     </style>
 </head>
 <body>
     <!-- Header -->
     <header class="header">
-        <h1>Starlink Data Bundles</h1>
-        <div class="header-subtitle">High-speed internet for Kenya</div>
+        <div class="header-content">
+            <h1><i class="fas fa-satellite"></i> Starlink Data Bundles</h1>
+            <div class="header-subtitle">High-speed internet for Kenya • Instant activation</div>
+        </div>
     </header>
 
     <!-- Main Content -->
     <main class="container">
         <!-- Hero Section -->
         <section class="hero">
-            <h2>Affordable Data Bundles</h2>
-            <p>Select from our wide range of data plans</p>
+            <h2>Lightning-Fast Data Bundles</h2>
+            <p>Select from our premium range of high-speed internet plans designed for Kenya's digital needs</p>
             <div class="network-tags">
-                <span class="tag">Daily</span>
-                <span class="tag">Weekly</span>
-                <span class="tag">Monthly</span>
-                <span class="tag">Unlimited</span>
+                <span class="tag"><i class="fas fa-bolt"></i> Instant</span>
+                <span class="tag"><i class="fas fa-wifi"></i> Reliable</span>
+                <span class="tag"><i class="fas fa-shield-alt"></i> Secure</span>
+                <span class="tag"><i class="fas fa-rocket"></i> High-Speed</span>
             </div>
         </section>
 
         <!-- Category Tabs -->
         <div class="category-tabs">
-            <button class="tab active" data-category="all">All Bundles</button>
-            <button class="tab" data-category="daily">Daily</button>
-            <button class="tab" data-category="weekly">Weekly</button>
-            <button class="tab" data-category="monthly">Monthly</button>
-            <button class="tab" data-category="unlimited">Unlimited</button>
+            <button class="tab active" data-category="all">
+                <i class="fas fa-th-large"></i> All Bundles
+            </button>
+            <button class="tab" data-category="daily">
+                <i class="fas fa-sun"></i> Daily
+            </button>
+            <button class="tab" data-category="weekly">
+                <i class="fas fa-calendar-week"></i> Weekly
+            </button>
+            <button class="tab" data-category="monthly">
+                <i class="fas fa-calendar-alt"></i> Monthly
+            </button>
+            <button class="tab" data-category="unlimited">
+                <i class="fas fa-infinity"></i> Unlimited
+            </button>
         </div>
 
         <!-- Bundles Grid with Categories -->
@@ -502,15 +674,17 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="footer-logo">Starlink Data Solutions</div>
+        <div class="footer-logo">
+            <i class="fas fa-satellite-dish"></i> Starlink Data Solutions
+        </div>
         <p>© 2023 Starlink Data Bundles. All rights reserved.</p>
-        <p>Fast, reliable internet for Kenya</p>
+        <p>Connecting Kenya with high-speed satellite internet</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
 
     <script>
-    // Configuration
+    // Configuration - KEEPING ALL ORIGINAL LOGIC INTACT
     const API_ENDPOINTS = {
         initiatePayment: '/api/initiate-payment',
         normalizePhone: '/api/normalize-phone',
@@ -617,7 +791,7 @@
                             data-id="${bundle.id}"
                             data-title="${bundle.title}"
                             data-price="${bundle.price}">
-                            BUY
+                            BUY NOW
                         </button>
                     </div>
                 `;
@@ -724,7 +898,8 @@
             title: 'Send Data Bundle',
             html: `
                 <div style="text-align: left;">
-                    <p style="margin-bottom: 1rem; font-weight: 500; color: var(--text);">
+                    <p style="margin-bottom: 1rem; font-weight: 600; color: var(--text); background: var(--surface-light); padding: 0.75rem; border-radius: var(--radius-sm);">
+                        <i class="fas fa-shopping-cart" style="color: var(--accent); margin-right: 0.5rem;"></i>
                         You selected: <strong>${bundle.title}</strong>
                     </p>
                     
@@ -747,6 +922,7 @@
                             >
                         </div>
                         <p class="input-note">
+                            <i class="fas fa-info-circle" style="color: var(--accent); margin-right: 0.25rem;"></i>
                             Enter the phone number where the data bundle should be sent
                         </p>
                     </div>
@@ -763,8 +939,8 @@
                         </div>
                     </div>
                     
-                    <p style="color: var(--text-light); font-size: 0.8rem; margin-top: 1rem; text-align: center;">
-                        <i class="fas fa-lock"></i> Your payment is secure and encrypted
+                    <p style="color: var(--text-light); font-size: 0.8rem; margin-top: 1rem; text-align: center; padding: 0.75rem; background: var(--surface-light); border-radius: var(--radius-sm);">
+                        <i class="fas fa-lock" style="color: var(--success); margin-right: 0.5rem;"></i> Your payment is secure and encrypted
                     </p>
                 </div>
             `,
@@ -987,18 +1163,18 @@
                 title: 'Payment Request Sent!',
                 html: `
                     <div style="text-align: center; padding: 0 5px;">
-                        <div style="font-size: 2.5rem; color: #00A859; margin-bottom: 12px;">
+                        <div style="font-size: 2.5rem; color: var(--accent); margin-bottom: 12px;" class="loading-float">
                             <i class="fas fa-mobile-alt"></i>
                         </div>
                         <p><strong>Check your phone for the payment request</strong></p>
-                        <div style="background: #f8f9f7; padding: 10px; border-radius: 8px; margin: 12px 0; font-weight: 600;">
+                        <div style="background: var(--surface-light); padding: 10px; border-radius: 8px; margin: 12px 0; font-weight: 700; border: 2px solid var(--border);">
                             ${formatPhoneForDisplay(recipientPhone)}
                         </div>
-                        <p style="color: #666; margin-top: 5px;">
+                        <p style="color: var(--text-light); margin-top: 5px;">
                             Enter your PIN to complete the payment
                         </p>
-                        <div style="margin-top: 15px; padding: 8px; background: #f0f9ff; border-radius: 6px; font-size: 0.8rem;">
-                            <i class="fas fa-spinner fa-spin"></i>
+                        <div style="margin-top: 15px; padding: 8px; background: var(--surface); border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--border);">
+                            <i class="fas fa-spinner fa-spin" style="color: var(--accent); margin-right: 0.5rem;"></i>
                             Waiting for payment confirmation...
                         </div>
                     </div>
@@ -1013,8 +1189,8 @@
                     title: 'Verifying Payment',
                     html: `
                         <div style="text-align: center; padding: 0 5px;">
-                            <div class="swal2-loading" style="border-color: #00A859 transparent #00A859 transparent; width: 60px; height: 60px; margin: 15px auto;"></div>
-                            <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
+                            <div class="swal2-loading" style="border-color: var(--accent) transparent var(--accent) transparent; width: 60px; height: 60px; margin: 15px auto;"></div>
+                            <p style="color: var(--text-light); margin-top: 10px; font-size: 0.85rem;">
                                 Verifying your payment... (This may take a few seconds)
                             </p>
                         </div>
@@ -1056,11 +1232,11 @@
             title: 'Payment Successful!',
             html: `
                 <div style="text-align: center; padding: 0 5px;">
-                    <div style="font-size: 3rem; color: #22c55e; margin-bottom: 12px;">
+                    <div style="font-size: 3rem; color: var(--success); margin-bottom: 12px;">
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <p><strong>Your data bundle purchase is complete!</strong></p>
-                    <div style="background: #f8f9f7; padding: 12px; border-radius: 8px; margin: 12px 0;">
+                    <div style="background: var(--surface-light); padding: 12px; border-radius: 8px; margin: 12px 0; border: 2px solid var(--border);">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                             <span>Bundle:</span>
                             <strong>${bundle.title}</strong>
@@ -1069,19 +1245,19 @@
                             <span>Phone:</span>
                             <strong>${formatPhoneForDisplay(recipientPhone)}</strong>
                         </div>
-                        <div style="display: flex; justify-content: space-between; font-weight: 600;">
+                        <div style="display: flex; justify-content: space-between; font-weight: 700;">
                             <span>Amount Paid:</span>
                             <strong style="color: var(--primary-dark);">Ksh ${bundle.price}</strong>
                         </div>
                     </div>
-                    <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
+                    <p style="color: var(--text-light); margin-top: 10px; font-size: 0.85rem;">
                         The data bundle will be activated within 2-5 minutes. You'll receive an SMS confirmation.
                     </p>
                 </div>
             `,
             showConfirmButton: true,
             confirmButtonText: 'Done',
-            confirmButtonColor: '#27ae60',
+            confirmButtonColor: 'var(--success)',
             allowOutsideClick: false
         });
     }
@@ -1092,11 +1268,11 @@
             title: 'Payment Status',
             html: `
                 <div style="text-align: center; padding: 0 5px;">
-                    <div style="font-size: 2.5rem; color: #f59e0b; margin-bottom: 12px;">
+                    <div style="font-size: 2.5rem; color: var(--warning); margin-bottom: 12px;">
                         <i class="fas fa-exclamation-triangle"></i>
                     </div>
                     <p><strong>${errorMessage}</strong></p>
-                    <p style="color: #666; margin-top: 10px; font-size: 0.85rem;">
+                    <p style="color: var(--text-light); margin-top: 10px; font-size: 0.85rem;">
                         Please check if the payment was completed on your phone. 
                         If the payment was successful, your data bundle will be activated shortly.
                     </p>
@@ -1104,7 +1280,7 @@
             `,
             showConfirmButton: true,
             confirmButtonText: 'OK',
-            confirmButtonColor: '#f59e0b',
+            confirmButtonColor: 'var(--warning)',
             allowOutsideClick: false
         });
     }
